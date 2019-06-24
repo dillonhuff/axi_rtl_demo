@@ -66,17 +66,25 @@ module axi_slave_ram(
    reg                                             read_state;
 
    reg [ADDRESS_WIDTH - 1 : 0]                        read_burst_base_addr;
-   reg [8:0]                                       read_bursts_left;
-   reg [2:0]                                       read_burst_size;   
-   reg [1:0]                                       read_burst_type;
+   reg [8:0]                                          read_bursts_remaining;
+   reg [2:0]                                          read_burst_size;
+   reg [1:0]                                          read_burst_type;
    
    always @(posedge aclk) begin
       if (!aresetn) begin
          read_state <= READ_CONTROLLER_WAITING;
       end else begin
-         
+
+         if (arvalid && arready) begin
+            read_state <= READ_CONTROLLER_ACTIVE;
+            read_bursts_remaining <= arlen + 1; // # of bursts
+            read_burst_base_addr <= araddr;
+            read_burst_type <= arburst;
+            read_burst_size <= arsize;
+         end
       end
-   end
-   
+   end // always @ (posedge aclk)
+
+   assign arready = read_state == READ_CONTROLLER_WAITING;
    
 endmodule
