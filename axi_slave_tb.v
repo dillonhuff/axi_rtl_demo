@@ -18,7 +18,7 @@ module test();
    reg [DATA_WIDTH - 1 : 0]   rdata;
    reg [1:0]                  rresp;
    reg                        rlast; 
-   reg                       rvalid;
+   wire                       rvalid;
    reg                        rready;
    
    
@@ -26,6 +26,13 @@ module test();
       #1 clk = 0;
       #1 rst = 0;
 
+      #10 rst = 1;
+
+      #10 arvalid = 1;
+      arlen = 5;
+
+      #30 arvalid = 0;
+      
       #1 $display("Done.");
       
       #1000 $finish();

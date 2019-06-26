@@ -83,6 +83,8 @@ module axi_slave_ram(
          //rvalid <= 0;
       end else begin
 
+         $display("read bursts remaining = %d", read_bursts_remaining);
+         
          // Starting a burst
          if (arvalid && arready) begin
             read_state <= READ_CONTROLLER_ACTIVE;
@@ -90,19 +92,15 @@ module axi_slave_ram(
             read_burst_base_addr <= araddr;
             read_burst_type <= arburst;
             read_burst_size <= arsize;
-         end else begin
-            // assert(READ_CONTROLLER_ACTIVE)
-
+         end else if (rvalid && rready) begin
             read_bursts_remaining <= read_bursts_remaining - 1;
+            // calculate next address
+            // update address register
 
-            // In the current cycle the code has been implemented
-            if (rvalid && rready) begin
-               if (read_bursts_remaining == 1) begin
-                  read_state <= READ_CONTROLLER_WAITING;
-               end
+            if (read_bursts_remaining == 1) begin
+               read_state <= READ_CONTROLLER_WAITING;
             end
          end
-
       end
    end // always @ (posedge aclk)
 
