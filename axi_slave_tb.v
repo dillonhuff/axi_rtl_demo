@@ -23,9 +23,19 @@ module test();
    
    
    initial begin
+      #1 clk = 0;
+      #1 rst = 0;
+      
    end
 
-   axi_slave_ram dut(.aclk(clk), .aresetn(rst));
-   
-   
+   axi_slave_ram dut(.aclk(clk),
+                     .aresetn(rst),
+
+                     .araddr(araddr),
+                     .arsize(arsize),
+                     .arlen(arlen),
+                     .arburst(arburst),
+                     .arvalid(arvalid),
+                     .arready(arread));
+
 endmodule

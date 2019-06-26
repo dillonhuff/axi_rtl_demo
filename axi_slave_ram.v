@@ -94,8 +94,11 @@ module axi_slave_ram(
 
             read_bursts_remaining <= read_bursts_remaining - 1;
 
-            if (read_bursts_remaining == 1) begin
-               read_state <= READ_CONTROLLER_WAITING;
+            // In the current cycle the code has been implemented
+            if (rvalid && rready) begin
+               if (read_bursts_remaining == 1) begin
+                  read_state <= READ_CONTROLLER_WAITING;
+               end
             end
          end
 
