@@ -80,12 +80,13 @@ module axi_slave_ram(
    always @(posedge aclk) begin
       if (!aresetn) begin
          read_state <= READ_CONTROLLER_WAITING;
+         //rvalid <= 0;
       end else begin
 
          // Starting a burst
          if (arvalid && arready) begin
             read_state <= READ_CONTROLLER_ACTIVE;
-            read_bursts_remaining <= arlen + 1; // # of bursts is len + 1 in AXI
+            read_bursts_remaining <= {1'b0, arlen} + 8'd1; // # of bursts is len + 1 in AXI
             read_burst_base_addr <= araddr;
             read_burst_type <= arburst;
             read_burst_size <= arsize;
