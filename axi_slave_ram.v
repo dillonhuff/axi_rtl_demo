@@ -1,5 +1,4 @@
 module axi_slave_ram(
-
                      // Global signals
                      input                         aclk,
                      input                         aresetn,
@@ -69,22 +68,40 @@ module axi_slave_ram(
    reg [8:0]                                          read_bursts_remaining;
    reg [2:0]                                          read_burst_size;
    reg [1:0]                                          read_burst_type;
-   
+
+   // Maybe right structure: Have next registers and current registers to
+   // store values for the next transaction while waiting on the first one?
+
+   // If we are in the wait state we cannot transition to active until
+   // read is ready
+
+   // If we are in the active state we cannot transition to a new state
+   // until the rready signal is high
    always @(posedge aclk) begin
       if (!aresetn) begin
          read_state <= READ_CONTROLLER_WAITING;
       end else begin
 
+         // Starting a burst
          if (arvalid && arready) begin
             read_state <= READ_CONTROLLER_ACTIVE;
-            read_bursts_remaining <= arlen + 1; // # of bursts
+            read_bursts_remaining <= arlen + 1; // # of bursts is len + 1 in AXI
             read_burst_base_addr <= araddr;
             read_burst_type <= arburst;
             read_burst_size <= arsize;
+         end else begin
+            // assert(READ_CONTROLLER_ACTIVE)
+
+            read_bursts_remaining <= read_bursts_remaining - 1;
+
+            if (read_bursts_remaining == 1) begin
+               read_state <= READ_CONTROLLER_WAITING;
+            end
          end
+
       end
    end // always @ (posedge aclk)
 
    assign arready = read_state == READ_CONTROLLER_WAITING;
-   
+
 endmodule
