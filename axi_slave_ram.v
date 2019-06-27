@@ -44,15 +44,6 @@ module axi_slave_ram(
    parameter ADDRESS_WIDTH = 8;
    parameter BYTES_PER_WORD = STROBE_WIDTH;
 
-   // Start with slave reads, take in read burst, and then
-   // emit read data?
-
-   // What is the size of the underlying memory?
-   // 2**(address width) bytes, so
-   // 2**(address width) / bytes_per_word
-
-   //reg [DATA_WIDTH - 1 : 0]                        ram [(2**(ADDRESS_WIDTH)) / BYTES_PER_WORD - 1: 0];
-
    reg [7:0]                                       ram[2**ADDRESS_WIDTH];
    
    // Read state is?
@@ -60,7 +51,9 @@ module axi_slave_ram(
    // Servicing burst
 
    localparam READ_CONTROLLER_WAITING = 0;
-   localparam READ_CONTROLLER_ACTIVE = 1;   
+   localparam READ_CONTROLLER_ACTIVE = 1;
+
+   localparam BURST_TYPE_INCR = 1;
 
    reg                                             read_state;
 
@@ -69,6 +62,13 @@ module axi_slave_ram(
    reg [2:0]                                       read_burst_size;
    reg [1:0]                                       read_burst_type;
 
+   reg [ADDRESS_WIDTH - 1 : 0]                     next_read_addr;
+
+   always @(*) begin
+      if (read_burst_type == BURST_TYPE_INCR) begin
+         //next_read;
+      end
+   end
    // Maybe right structure: Have next registers and current registers to
    // store values for the next transaction while waiting on the first one?
 
@@ -107,7 +107,6 @@ module axi_slave_ram(
    assign arready = read_state == READ_CONTROLLER_WAITING;
 
    assign rvalid = read_state == READ_CONTROLLER_ACTIVE;
-   
 
    // Idea: Allow state machines with wait statements?
    // lambdas are anonymous functions, for, if, etc
