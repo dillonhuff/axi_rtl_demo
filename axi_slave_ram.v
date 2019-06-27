@@ -35,7 +35,7 @@ module axi_slave_ram(
                      output [DATA_WIDTH - 1 : 0]   rdata,
                      output [1:0]                  rresp,
                      output                        rlast, 
-                     output                        rvalid,
+                     output                  rvalid,
                      input                         rready
                      );
 
@@ -64,10 +64,10 @@ module axi_slave_ram(
 
    reg                                             read_state;
 
-   reg [ADDRESS_WIDTH - 1 : 0]                        read_burst_base_addr;
-   reg [8:0]                                          read_bursts_remaining;
-   reg [2:0]                                          read_burst_size;
-   reg [1:0]                                          read_burst_type;
+   reg [ADDRESS_WIDTH - 1 : 0]                     read_burst_base_addr;
+   reg [8:0]                                       read_bursts_remaining;
+   reg [2:0]                                       read_burst_size;
+   reg [1:0]                                       read_burst_type;
 
    // Maybe right structure: Have next registers and current registers to
    // store values for the next transaction while waiting on the first one?
@@ -105,5 +105,37 @@ module axi_slave_ram(
    end // always @ (posedge aclk)
 
    assign arready = read_state == READ_CONTROLLER_WAITING;
+
+   assign rvalid = read_state == READ_CONTROLLER_ACTIVE;
+   
+
+   // Idea: Allow state machines with wait statements?
+   // lambdas are anonymous functions, for, if, etc
+   // are anonymous control flow
+
+   // sequential clk begin
+   //    arready <= 1;
+
+   //    rready <= 0;
+   //    rvalid <= 0;
+      
+   //    endreset(rst);
+      
+   //    wait(arvalid && arready);
+      
+   //    arvalid <= 0;
+   //    arready <= 0;
+
+   //    bursts_remaining <= arvalid;
+      
+   //    wait(rready && rvalid);
+
+   //    if (bursts_remaining > 1) begin
+   //       bursts_remaining <= bursts_remaining - 1;
+   //    end else begin
+   //       arready <= 1;
+   //    end
+
+   // end
 
 endmodule

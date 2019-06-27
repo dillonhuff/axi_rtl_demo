@@ -15,9 +15,9 @@ module test();
    wire                        arready;
 
    // Read data channel
-   reg [DATA_WIDTH - 1 : 0]   rdata;
-   reg [1:0]                  rresp;
-   reg                        rlast; 
+   wire [DATA_WIDTH - 1 : 0]   rdata;
+   wire [1:0]                  rresp;
+   wire                       rlast; 
    wire                       rvalid;
    reg                        rready;
    
@@ -32,6 +32,7 @@ module test();
       arlen = 5;
 
       #30 arvalid = 0;
+      rready = 1;
       
       #1 $display("Done.");
       
