@@ -62,11 +62,19 @@ module axi_slave_ram(
    reg [2:0]                                       read_burst_size;
    reg [1:0]                                       read_burst_type;
 
+   // Current read address
+   reg [ADDRESS_WIDTH - 1 : 0]                     read_addr;
+   
+   // Next address calculation
+   reg [8:0]                                       read_transfer_number;
+   reg [ADDRESS_WIDTH - 1 : 0]                     aligned_addr_read;
    reg [ADDRESS_WIDTH - 1 : 0]                     next_read_addr;
-
+   reg [ADDRESS_WIDTH - 1 : 0]                     number_bytes_read;
+   
+                              
    always @(*) begin
       if (read_burst_type == BURST_TYPE_INCR) begin
-         //next_read;
+         next_read_addr = aligned_addr_read + (read_transfer_number - 1)*number_bytes_read;
       end
    end
    // Maybe right structure: Have next registers and current registers to
@@ -80,10 +88,16 @@ module axi_slave_ram(
    always @(posedge aclk) begin
       if (!aresetn) begin
          read_state <= READ_CONTROLLER_WAITING;
+
          //rvalid <= 0;
       end else begin
 
          $display("read bursts remaining = %d", read_bursts_remaining);
+
+         $display("%d th read addr   = %d", read_transfer_number, read_addr);
+         $display("Number bytes read = %d", number_bytes_read);
+         $display("Aligned addr      = %d", aligned_addr_read);            
+            // A read beat has been acknowledged, go to the next one
          
          // Starting a burst
          if (arvalid && arready) begin
@@ -92,8 +106,20 @@ module axi_slave_ram(
             read_burst_base_addr <= araddr;
             read_burst_type <= arburst;
             read_burst_size <= arsize;
-         end else if (rvalid && rready) begin
+
+            read_transfer_number <= 2;
+
+            // Calculated from burst parameters
+            read_addr <= read_burst_base_addr;
+            number_bytes_read <= 2**arsize;
+            aligned_addr_read <= (araddr / 2**arsize) * 2**arsize;
+            
+         end else if (READ_CONTROLLER_ACTIVE && (rvalid && rready)) begin
+
+            read_transfer_number <= read_transfer_number + 1;
             read_bursts_remaining <= read_bursts_remaining - 1;
+            read_addr <= next_read_addr;
+
             // calculate next address
             // update address register
 
@@ -111,30 +137,5 @@ module axi_slave_ram(
    // Idea: Allow state machines with wait statements?
    // lambdas are anonymous functions, for, if, etc
    // are anonymous control flow
-
-   // sequential clk begin
-   //    arready <= 1;
-
-   //    rready <= 0;
-   //    rvalid <= 0;
-      
-   //    endreset(rst);
-      
-   //    wait(arvalid && arready);
-      
-   //    arvalid <= 0;
-   //    arready <= 0;
-
-   //    bursts_remaining <= arvalid;
-      
-   //    wait(rready && rvalid);
-
-   //    if (bursts_remaining > 1) begin
-   //       bursts_remaining <= bursts_remaining - 1;
-   //    end else begin
-   //       arready <= 1;
-   //    end
-
-   // end
 
 endmodule

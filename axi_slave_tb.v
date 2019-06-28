@@ -30,13 +30,16 @@ module test();
 
       #10 arvalid = 1;
       arlen = 5;
+      arsize = 2;
+      arburst = 1;
+      araddr = 7;
 
       #30 arvalid = 0;
       rready = 1;
       
       #1 $display("Done.");
       
-      #1000 $finish();
+      #100 $finish();
    end
 
    always #5 clk = ~clk;
