@@ -39,8 +39,6 @@ module test();
       #30 arvalid = 0;
       rready = 1;
       
-      #1 $display("Done.");
-      
       #100 $finish();
    end
 
@@ -50,7 +48,7 @@ module test();
       if (arready && arvalid) begin
          $display("Starting read burst");
       end else begin
-         $display("arready = %d, arrvalid = %d", arready, arvalid);
+         //$display("arready = %d, arrvalid = %d", arready, arvalid);
       end
    end
 

@@ -93,12 +93,12 @@ module axi_slave_ram(
       end else begin
 
          //$display("read bursts remaining = %d", read_bursts_remaining);
-         //$display("%d th read addr   = %d", read_transfer_number, read_addr);
          //$display("Number bytes read = %d", number_bytes_read);
          //$display("Aligned addr      = %d", aligned_addr_read);            
 
          // Starting a burst
          if (arvalid && arready) begin
+
             read_state <= READ_CONTROLLER_ACTIVE;
             read_bursts_remaining <= {1'b0, arlen} + 8'd1; // # of bursts is len + 1 in AXI
             read_burst_base_addr <= araddr;
@@ -108,13 +108,15 @@ module axi_slave_ram(
             read_transfer_number <= 2;
 
             // Calculated from burst parameters
-            read_addr <= read_burst_base_addr;
+            read_addr <= araddr;
             number_bytes_read <= 2**arsize;
             aligned_addr_read <= (araddr / 2**arsize) * 2**arsize;
 
             // Should this condition be rvalid and rready
          end else if (READ_CONTROLLER_ACTIVE && (rvalid && rready)) begin
 
+            $display("%d th read addr   = %d", read_transfer_number, read_addr);
+            
             read_transfer_number <= read_transfer_number + 1;
             read_bursts_remaining <= read_bursts_remaining - 1;
             read_addr <= next_read_addr;
