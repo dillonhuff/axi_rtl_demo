@@ -111,7 +111,8 @@ module axi_slave_ram(
             read_addr <= read_burst_base_addr;
             number_bytes_read <= 2**arsize;
             aligned_addr_read <= (araddr / 2**arsize) * 2**arsize;
-            
+
+            // Should this condition be rvalid and rready
          end else if (READ_CONTROLLER_ACTIVE && (rvalid && rready)) begin
 
             read_transfer_number <= read_transfer_number + 1;
