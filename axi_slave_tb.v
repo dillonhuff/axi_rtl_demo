@@ -31,14 +31,14 @@ module test();
       #10 rst = 1;
 
       #10 arvalid = 1;
-      arlen = 5;
-      arsize = 2;
+      arlen = 4;
+      arsize = 0;
       arburst = 1;
-      araddr = 7;
+      araddr = 0;
 
       #30 arvalid = 0;
       rready = 1;
-      
+
       #100 $finish();
    end
 

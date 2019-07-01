@@ -43,7 +43,8 @@ module axi_slave_ram(
    parameter STROBE_WIDTH = DATA_WIDTH / 8;
    parameter ADDRESS_WIDTH = 8;
    parameter BYTES_PER_WORD = STROBE_WIDTH;
-
+   parameter DATA_BUS_BYTES = DATA_WIDTH / 8;
+   
    reg [7:0]                                       ram[2**ADDRESS_WIDTH];
    
    // Read state is?
@@ -70,13 +71,29 @@ module axi_slave_ram(
    reg [ADDRESS_WIDTH - 1 : 0]                     aligned_addr_read;
    reg [ADDRESS_WIDTH - 1 : 0]                     next_read_addr;
    reg [ADDRESS_WIDTH - 1 : 0]                     number_bytes_read;
-   
+
+   reg [ADDRESS_WIDTH - 1 : 0]                     lower_byte_lane_read;
+   reg [ADDRESS_WIDTH - 1 : 0]                     upper_byte_lane_read;
                               
    always @(*) begin
       if (read_burst_type == BURST_TYPE_INCR) begin
-         next_read_addr = aligned_addr_read + (read_transfer_number - 1)*number_bytes_read;
+         // Use read_transfer number (not read_transfer_number - 1)
+         // because we are at the Nth read, but we are computing the
+         // (N + 1)th read address
+         next_read_addr = aligned_addr_read + (read_transfer_number)*number_bytes_read;
+      end else begin
+         $display("Unsupported burst type %d", read_burst_type);
+      end
+
+      if (read_transfer_number == 1) begin
+         lower_byte_lane_read = read_addr - (read_addr / DATA_BUS_BYTES)*DATA_BUS_BYTES;
+         upper_byte_lane_read = aligned_addr_read + (number_bytes_read - 1) - (read_addr / DATA_BUS_BYTES)*DATA_BUS_BYTES;
+      end else begin
+         lower_byte_lane_read = read_addr - (read_addr / DATA_BUS_BYTES)*DATA_BUS_BYTES;
+         upper_byte_lane_read = lower_byte_lane_read + (number_bytes_read - 1);
       end
    end
+
    // Maybe right structure: Have next registers and current registers to
    // store values for the next transaction while waiting on the first one?
 
@@ -105,7 +122,7 @@ module axi_slave_ram(
             read_burst_type <= arburst;
             read_burst_size <= arsize;
 
-            read_transfer_number <= 2;
+            read_transfer_number <= 1;
 
             // Calculated from burst parameters
             read_addr <= araddr;
@@ -115,7 +132,7 @@ module axi_slave_ram(
             // Should this condition be rvalid and rready
          end else if (READ_CONTROLLER_ACTIVE && (rvalid && rready)) begin
 
-            $display("%d th read addr   = %d", read_transfer_number, read_addr);
+            $display("%d th read addr   = %d, (aligned %d), lanes: %d to %d", read_transfer_number, read_addr, aligned_addr_read, lower_byte_lane_read, upper_byte_lane_read);
             
             read_transfer_number <= read_transfer_number + 1;
             read_bursts_remaining <= read_bursts_remaining - 1;
