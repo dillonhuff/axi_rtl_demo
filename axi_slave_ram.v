@@ -92,13 +92,11 @@ module axi_slave_ram(
          //rvalid <= 0;
       end else begin
 
-         $display("read bursts remaining = %d", read_bursts_remaining);
+         //$display("read bursts remaining = %d", read_bursts_remaining);
+         //$display("%d th read addr   = %d", read_transfer_number, read_addr);
+         //$display("Number bytes read = %d", number_bytes_read);
+         //$display("Aligned addr      = %d", aligned_addr_read);            
 
-         $display("%d th read addr   = %d", read_transfer_number, read_addr);
-         $display("Number bytes read = %d", number_bytes_read);
-         $display("Aligned addr      = %d", aligned_addr_read);            
-            // A read beat has been acknowledged, go to the next one
-         
          // Starting a burst
          if (arvalid && arready) begin
             read_state <= READ_CONTROLLER_ACTIVE;
@@ -131,7 +129,6 @@ module axi_slave_ram(
    end // always @ (posedge aclk)
 
    assign arready = read_state == READ_CONTROLLER_WAITING;
-
    assign rvalid = read_state == READ_CONTROLLER_ACTIVE;
 
    // Idea: Allow state machines with wait statements?

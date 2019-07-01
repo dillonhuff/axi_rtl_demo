@@ -1,3 +1,5 @@
+`define POSEDGE #1 clk = 0; #1 clk = 1; #1 clk = 0; #1
+
 module test();
 
    parameter ADDRESS_WIDTH = 8;
@@ -44,6 +46,14 @@ module test();
 
    always #5 clk = ~clk;
 
+   always @(posedge clk) begin
+      if (arready && arvalid) begin
+         $display("Starting read burst");
+      end else begin
+         $display("arready = %d, arrvalid = %d", arready, arvalid);
+      end
+   end
+
    axi_slave_ram dut(.aclk(clk),
                      .aresetn(rst),
 
@@ -52,7 +62,7 @@ module test();
                      .arlen(arlen),
                      .arburst(arburst),
                      .arvalid(arvalid),
-                     .arready(arread),
+                     .arready(arready),
 
                      .rdata(rdata),
                      .rlast(rlast),
