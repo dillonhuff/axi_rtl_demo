@@ -32,7 +32,7 @@ module axi_slave_ram(
                      output                        arready,
 
                      // Read data channel
-                     output [DATA_WIDTH - 1 : 0]   rdata,
+                     output reg [DATA_WIDTH - 1 : 0]   rdata,
                      output [1:0]                  rresp,
                      output                        rlast, 
                      output                  rvalid,
@@ -74,7 +74,15 @@ module axi_slave_ram(
 
    reg [ADDRESS_WIDTH - 1 : 0]                     lower_byte_lane_read;
    reg [ADDRESS_WIDTH - 1 : 0]                     upper_byte_lane_read;
-                              
+
+   integer                                         i;
+
+   initial begin
+      for (i = 0; i < 2**ADDRESS_WIDTH; i = i + 1) begin
+         ram[i] = i % 256;
+      end
+   end
+   
    always @(*) begin
       if (read_burst_type == BURST_TYPE_INCR) begin
          // Use read_transfer number (not read_transfer_number - 1)
@@ -132,7 +140,7 @@ module axi_slave_ram(
             // Should this condition be rvalid and rready
          end else if (READ_CONTROLLER_ACTIVE && (rvalid && rready)) begin
 
-            $display("%d th read addr   = %d, (aligned %d), lanes: %d to %d", read_transfer_number, read_addr, aligned_addr_read, lower_byte_lane_read, upper_byte_lane_read);
+            $display("%d th read addr   = %d, (aligned %d), lanes: %d to %d, data = %b", read_transfer_number, read_addr, aligned_addr_read, lower_byte_lane_read, upper_byte_lane_read, rdata);
             
             read_transfer_number <= read_transfer_number + 1;
             read_bursts_remaining <= read_bursts_remaining - 1;
@@ -143,6 +151,10 @@ module axi_slave_ram(
 
             if (read_bursts_remaining == 1) begin
                read_state <= READ_CONTROLLER_WAITING;
+            end
+
+            for (i = 0; i < DATA_BUS_BYTES; i = i + 1) begin
+               rdata[i*8 +: 8] <= ram[read_addr + i];
             end
          end
       end
