@@ -1,42 +1,42 @@
 module axi_slave_ram(
                      // Global signals
-                     input                         aclk,
-                     input                         aresetn,
+                     input                           aclk,
+                     input                           aresetn,
 
                      // Write address channel
-                     input [ADDRESS_WIDTH - 1 : 0] awaddr,
-                     input [7:0]                   awlen,
-                     input [2:0]                   awsize,
-                     input [1:0]                   awburst,
-                     input                         awvalid,
-                     output                        awready,
+                     input [ADDRESS_WIDTH - 1 : 0]   awaddr,
+                     input [7:0]                     awlen,
+                     input [2:0]                     awsize,
+                     input [1:0]                     awburst,
+                     input                           awvalid,
+                     output                          awready,
 
                      // Write data channel
-                     input [DATA_WIDTH - 1 : 0]    wdata,
-                     input [STROBE_WIDTH - 1 : 0]  wstrb,
-                     input                         wlast,
-                     input                         wvalid,
-                     output                        wready,
+                     input [DATA_WIDTH - 1 : 0]      wdata,
+                     input [STROBE_WIDTH - 1 : 0]    wstrb,
+                     input                           wlast,
+                     input                           wvalid,
+                     output                          wready,
 
                      // Write response channel
-                     output [1:0]                  bresp,
-                     output                        bvalid,
-                     input                         bready,
+                     output [1:0]                    bresp,
+                     output                          bvalid,
+                     input                           bready,
 
                      // Read address channel
-                     input [ADDRESS_WIDTH - 1 : 0] araddr,
-                     input [7:0]                   arlen,
-                     input [2:0]                   arsize,
-                     input [1:0]                   arburst,
-                     input                         arvalid,
-                     output                        arready,
+                     input [ADDRESS_WIDTH - 1 : 0]   araddr,
+                     input [7:0]                     arlen,
+                     input [2:0]                     arsize,
+                     input [1:0]                     arburst,
+                     input                           arvalid,
+                     output                          arready,
 
                      // Read data channel
-                     output reg [DATA_WIDTH - 1 : 0]   rdata,
-                     output [1:0]                  rresp,
-                     output                        rlast, 
-                     output                  rvalid,
-                     input                         rready
+                     output reg [DATA_WIDTH - 1 : 0] rdata,
+                     output [1:0]                    rresp,
+                     output                          rlast, 
+                     output                          rvalid,
+                     input                           rready
                      );
 
    parameter DATA_WIDTH = 32;
@@ -140,7 +140,7 @@ module axi_slave_ram(
             // Should this condition be rvalid and rready
          end else if (READ_CONTROLLER_ACTIVE && (rvalid && rready)) begin
 
-            $display("%d th read addr   = %d, (aligned %d), lanes: %d to %d, data = %b", read_transfer_number, read_addr, aligned_addr_read, lower_byte_lane_read, upper_byte_lane_read, rdata);
+            //$display("%d th read addr   = %d, (aligned %d), lanes: %d to %d, data = %b", read_transfer_number, read_addr, aligned_addr_read, lower_byte_lane_read, upper_byte_lane_read, rdata);
             
             read_transfer_number <= read_transfer_number + 1;
             read_bursts_remaining <= read_bursts_remaining - 1;

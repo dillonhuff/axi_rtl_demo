@@ -45,10 +45,13 @@ module test();
    always #5 clk = ~clk;
 
    always @(posedge clk) begin
+
       if (arready && arvalid) begin
          $display("Starting read burst");
-      end else begin
-         //$display("arready = %d, arrvalid = %d", arready, arvalid);
+      end else if (rready && rvalid) begin
+         $display("rdata = {%b, %b, %b, %b}", rdata[31:24], rdata[23:16], rdata[15:8], rdata[7:0]);
+         
+            //$display("arready = %d, arrvalid = %d", arready, arvalid);
       end
    end
 
