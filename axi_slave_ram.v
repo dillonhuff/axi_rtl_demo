@@ -32,9 +32,9 @@ module axi_slave_ram(
                      output                          arready,
 
                      // Read data channel
-                     output reg [DATA_WIDTH - 1 : 0] rdata,
+                     output [DATA_WIDTH - 1 : 0] rdata,
                      output [1:0]                    rresp,
-                     output                          rlast, 
+                     output                          rlast,
                      output                          rvalid,
                      input                           rready
                      );
@@ -51,8 +51,9 @@ module axi_slave_ram(
    // Idle (waiting for burst)
    // Servicing burst
 
-   localparam READ_CONTROLLER_WAITING = 0;
-   localparam READ_CONTROLLER_ACTIVE = 1;
+   localparam READ_CONTROLLER_IDLE = 0;
+   localparam READ_CONTROLLER_LOADING = 1;
+   localparam READ_CONTROLLER_ACTIVE = 2;
 
    localparam BURST_TYPE_INCR = 1;
 
@@ -74,6 +75,8 @@ module axi_slave_ram(
 
    reg [ADDRESS_WIDTH - 1 : 0]                     lower_byte_lane_read;
    reg [ADDRESS_WIDTH - 1 : 0]                     upper_byte_lane_read;
+
+   reg [DATA_WIDTH - 1 : 0]                        read_value_reg;
 
    integer                                         i;
 
@@ -110,9 +113,12 @@ module axi_slave_ram(
 
    // If we are in the active state we cannot transition to a new state
    // until the rready signal is high
+
+   // Maybe I should have "next read" registers for the address of the read
+   // that will be serviced next time rvalid is high?
    always @(posedge aclk) begin
       if (!aresetn) begin
-         read_state <= READ_CONTROLLER_WAITING;
+         read_state <= READ_CONTROLLER_IDLE;
 
          //rvalid <= 0;
       end else begin
@@ -124,7 +130,8 @@ module axi_slave_ram(
          // Starting a burst
          if (arvalid && arready) begin
 
-            read_state <= READ_CONTROLLER_ACTIVE;
+            read_state <= READ_CONTROLLER_LOADING;
+            
             read_bursts_remaining <= {1'b0, arlen} + 8'd1; // # of bursts is len + 1 in AXI
             read_burst_base_addr <= araddr;
             read_burst_type <= arburst;
@@ -138,7 +145,7 @@ module axi_slave_ram(
             aligned_addr_read <= (araddr / 2**arsize) * 2**arsize;
 
             // Should this condition be rvalid and rready
-         end else if (READ_CONTROLLER_ACTIVE && (rvalid && rready)) begin
+         end else if ((read_state == READ_CONTROLLER_ACTIVE) && (rvalid && rready)) begin
 
             //$display("%d th read addr   = %d, (aligned %d), lanes: %d to %d, data = %b", read_transfer_number, read_addr, aligned_addr_read, lower_byte_lane_read, upper_byte_lane_read, rdata);
             
@@ -150,17 +157,32 @@ module axi_slave_ram(
             // update address register
 
             if (read_bursts_remaining == 1) begin
-               read_state <= READ_CONTROLLER_WAITING;
+               read_state <= READ_CONTROLLER_IDLE;
+            end else begin
+               read_state <= READ_CONTROLLER_LOADING;
             end
 
+            // I would like for reads from RAM to be done in
+            // exactly one place but I do not know how to
+            // do that
+
+         end else if (read_state == READ_CONTROLLER_LOADING) begin // if (READ_CONTROLLER_ACTIVE && (rvalid && rready))
+            read_state <= READ_CONTROLLER_ACTIVE;
+
             for (i = 0; i < DATA_BUS_BYTES; i = i + 1) begin
-               rdata[i*8 +: 8] <= ram[read_addr + i];
+               read_value_reg[i*8 +: 8] <= ram[read_addr + i];
             end
          end
       end
    end // always @ (posedge aclk)
 
-   assign arready = read_state == READ_CONTROLLER_WAITING;
+   always @(posedge aclk) begin
+      $display("read_state = %d", read_state);
+   end
+
+   assign rdata = read_value_reg;
+   
+   assign arready = read_state == READ_CONTROLLER_IDLE;
    assign rvalid = read_state == READ_CONTROLLER_ACTIVE;
 
    // Idea: Allow state machines with wait statements?
