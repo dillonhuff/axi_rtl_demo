@@ -27,6 +27,7 @@ module test();
    initial begin
       #1 clk = 0;
       #1 rst = 0;
+      #1 arvalid = 0;
 
       #10 rst = 1;
 
