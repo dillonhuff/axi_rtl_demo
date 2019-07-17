@@ -103,7 +103,7 @@ module axi_slave_ram(
          lower_byte_lane_read = read_addr - (read_addr / DATA_BUS_BYTES)*DATA_BUS_BYTES;
          upper_byte_lane_read = lower_byte_lane_read + (number_bytes_read - 1);
       end
-   end
+   end // always @ (*)
 
    // Maybe right structure: Have next registers and current registers to
    // store values for the next transaction while waiting on the first one?
@@ -119,6 +119,7 @@ module axi_slave_ram(
    always @(posedge aclk) begin
 
       $display("read state = %d", read_state);
+      $display("upper_byte_lane = %d", upper_byte_lane_read);      
       
       if (!aresetn) begin
          read_state <= READ_CONTROLLER_IDLE;
@@ -176,7 +177,11 @@ module axi_slave_ram(
             read_state <= READ_CONTROLLER_ACTIVE;
 
             for (i = 0; i < DATA_BUS_BYTES; i = i + 1) begin
-               read_value_reg[i*8 +: 8] <= ram[read_addr + i];
+               if (lower_byte_lane_read <= i && i <= upper_byte_lane_read) begin
+                  read_value_reg[i*8 +: 8] <= ram[read_addr + i];
+               end else begin
+                  read_value_reg[i*8 +: 8] <= 0;
+               end
             end
          end
       end
