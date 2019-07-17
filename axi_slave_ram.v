@@ -57,7 +57,7 @@ module axi_slave_ram(
 
    localparam BURST_TYPE_INCR = 1;
 
-   reg                                             read_state;
+   reg [31:0]                                             read_state;
 
    reg [ADDRESS_WIDTH - 1 : 0]                     read_burst_base_addr;
    reg [8:0]                                       read_bursts_remaining;
@@ -117,6 +117,9 @@ module axi_slave_ram(
    // Maybe I should have "next read" registers for the address of the read
    // that will be serviced next time rvalid is high?
    always @(posedge aclk) begin
+
+      $display("read state = %d", read_state);
+      
       if (!aresetn) begin
          read_state <= READ_CONTROLLER_IDLE;
 
@@ -167,6 +170,9 @@ module axi_slave_ram(
             // do that
 
          end else if (read_state == READ_CONTROLLER_LOADING) begin // if (READ_CONTROLLER_ACTIVE && (rvalid && rready))
+
+            $display("setting read controller active");
+            
             read_state <= READ_CONTROLLER_ACTIVE;
 
             for (i = 0; i < DATA_BUS_BYTES; i = i + 1) begin
@@ -176,9 +182,9 @@ module axi_slave_ram(
       end
    end // always @ (posedge aclk)
 
-   always @(posedge aclk) begin
-      $display("read_state = %d", read_state);
-   end
+   // always @(posedge aclk) begin
+   //    $display("read_state = %d", read_state);
+   // end
 
    assign rdata = read_value_reg;
    
