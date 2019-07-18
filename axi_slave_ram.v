@@ -178,7 +178,7 @@ module axi_slave_ram(
 
             for (i = 0; i < DATA_BUS_BYTES; i = i + 1) begin
                if (lower_byte_lane_read <= i && i <= upper_byte_lane_read) begin
-                  read_value_reg[i*8 +: 8] <= ram[read_addr + i];
+                  read_value_reg[i*8 +: 8] <= ram[read_addr + i - lower_byte_lane_read];
                end else begin
                   read_value_reg[i*8 +: 8] <= 0;
                end
@@ -187,9 +187,11 @@ module axi_slave_ram(
       end
    end // always @ (posedge aclk)
 
-   // always @(posedge aclk) begin
+   always @(posedge aclk) begin
+      $display("read addr = %d", read_addr);
+      
    //    $display("read_state = %d", read_state);
-   // end
+   end
 
    assign rdata = read_value_reg;
    
