@@ -6,6 +6,7 @@ then
     echo "Compiled correctly"
 else
     echo "Error: Compilation failed"
+    exit 1
 fi
 
 
