@@ -1,4 +1,5 @@
 `define POSEDGE #1 clk = 0; #1 clk = 1; #1 clk = 0; #1
+`define assert(cond) if (!(cond)) begin $display("Assertion failed"); $finish(1); end
 
 module test();
 
@@ -40,7 +41,22 @@ module test();
       #30 arvalid = 0;
       rready = 1;
 
-      #100 $finish();
+      #30 rready = 0;
+
+      $display("read ready = ", arready);
+      
+      `assert(arready === 1)
+
+      #10 arvalid = 1;
+      arlen = 2;
+      arsize = 3'b110;
+      arburst = 1;
+      araddr = 0;
+
+      #30 arvalid = 0;
+      rready = 1;
+
+      #1000 $finish();
    end
 
    always #5 clk = ~clk;
@@ -52,7 +68,6 @@ module test();
       end else if (rready && rvalid) begin
          $display("rdata = {%b, %b, %b, %b}", rdata[31:24], rdata[23:16], rdata[15:8], rdata[7:0]);
          
-            //$display("arready = %d, arrvalid = %d", arready, arvalid);
       end
    end
 

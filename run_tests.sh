@@ -11,3 +11,12 @@ fi
 
 
 ./axi_tb
+tb_res=$?
+
+if [ $tb_res = 0 ]
+then
+    echo "--- Slave test passed"
+else
+    echo "Error: Slave test failed"
+    exit 1
+fi
